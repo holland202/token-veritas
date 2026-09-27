@@ -129,7 +129,7 @@ budget on the 18 filler lines. It is the null the instrument can return, and it 
 
 - **P7:** the effect on real agent traces (repeated tool outputs, re-sent files) with the target API model.
 - **P8:** a log-det stop rule that sets the budget automatically.
-- **P9 (new, from the P1 diagnosis):** a *fact-level* kernel. S would be built from shared entities and
+- **P9 (new, from the P1 diagnosis; kernel built and unit-tested, not run, see `experiments/run3_fact_kernel/PLAN.md`):** a *fact-level* kernel. S would be built from shared entities and
   numbers, or from the answerer's own hidden states, not sentence embeddings. It would need a
   redesigned R/N pair with matched filler (fixes the confound above). The DPP idea is untested until
   its kernel measures informational overlap. Run 2 only shows that MiniLM wording similarity does not.
