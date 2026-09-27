@@ -50,6 +50,18 @@ Kulesza & Taskar 2012). Only the application to LLM token budgets is under test.
 - **P8** (door, unrun): a stop rule — halt when the best log det gain per token < τ — sets the
   budget automatically without losing accuracy.
 
+## Amendment A1 (implementation details, fixed before any Run 2 data)
+- LOO runs in deployable (self) mode. The target is the model's own full-context answer, not gold.
+- For dpp_loo, q_i = exp(3 · max(infl_i, 0) / max_j infl_j). If max_j infl_j ≤ 0, q ≡ 1.
+- topk_cos ranks by raw relevance. loo ranks by influence per token. The DPP policies use gain per token.
+- Answer generation: max 16 new tokens, greedy. Identical (context, question) pairs reuse the cached answer.
+- random uses rng seed + 1.
+
+## Amendment A2 (2026-09-26, before any registered-seed data)
+- A smoke test on throwaway seed 999 (2 items, discarded) showed answers cut at 16 tokens mid-sentence
+  ("The access codes for vaults 900 and 795 are"). That would score every policy near 0, a vacuous instrument.
+- max_new_tokens raised from 16 to 40. Nothing else changed.
+
 ## Kill criterion
 If P1 or P2 fails, the repo is published as a negative result, with the failure at the top.
 If P3 fails, any P1/P2 win is declared confounded.
