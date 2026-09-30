@@ -1,5 +1,57 @@
 # token-veritas
 
+<!-- 30s-demo -->
+> **Status labels.** **REFUTED (kept):** the DPP selector hypothesis, Run 2. **PROTOTYPE:** the selectors and
+> the scoring code. **RESEARCH HYPOTHESIS (lead, not a result):** that pruning a noisy context helps a small
+> model. **NOT PRODUCTION-READY:** all of it.
+
+**Headline (measured, Run 2, n = 40 per condition):** at 20% of the context tokens, plain top-k relevance
+ranking kept 0.825 answer accuracy (the full context got 0.975). The quantum-inspired DPP selector did not
+beat it: coverage −0.037, accuracy −0.050 (P1, P2 FAIL).
+
+### 30-second demo: re-score the frozen Run 2 data (no model, under a second)
+
+```bash
+git clone https://github.com/holland202/token-veritas && cd token-veritas
+pip install numpy && python3 -m token_veritas.analyze | tail -8
+```
+
+The scorer is the frozen `analyze.py`, pushed before the data existed. Output (x86_64, 2026-09-30):
+
+```
+## Registered predictions (budget 0.2)
+P1 coverage dpp_cos - topk_cos (R) = -0.037  95% CI [-0.087, 0.000]  threshold >= 0.20 -> FAIL
+P2 accuracy dpp_cos - topk_cos (R) = -0.050  95% CI [-0.225, 0.125]  wins 5 losses 7 p=0.7744  threshold >= 0.15 & p<0.05 -> FAIL
+P3 [control] coverage dpp_cos - topk_cos (N) = 0.050  threshold |d| <= 0.10 -> PASS
+P4 [control] coverage dpp_uniform 0.800 vs random 0.625 (R)  threshold <= random+0.10 -> FAIL
+P5 LOO coverage N 0.750 -> R 0.762, drop -0.012  threshold >= 0.20 -> FAIL
+P6 accuracy dpp_cos 0.775 vs loo 0.450 (R)  threshold dpp >= loo-0.05 -> PASS
+seconds: R 4559.8  N 3819.8
+```
+
+The last line is the original S25 run time. The full rerun needs `torch` and `transformers`
+(Reproduce, below).
+
+```mermaid
+flowchart LR
+  C[Context chunks:<br/>needed facts, copies, filler] --> S{Selector at a token budget}
+  S --> T[top-k cosine]
+  S --> D[DPP: repulsive, diversity]
+  S --> O[leave-one-out ablation]
+  S --> R[random: control]
+  T & D & O & R --> A[Qwen2.5-0.5B answers]
+  A --> F[Frozen scorer: coverage, accuracy,<br/>paired CIs, registered thresholds]
+```
+
+### Why this is not just top-k RAG
+
+It mostly *is* top-k RAG, and that is the finding. The more elaborate selectors (DPP: physics-inspired
+repulsion; leave-one-out: 25 model passes per question) lost to plain relevance ranking. What this repo
+adds is not a better selector. It is a registered, frozen-scorer comparison that says which cheap method
+to beat, and why the DPP lost: it repels on *wording* (paraphrases score cosine 0.864), not on *facts*.
+<!-- /30s-demo -->
+
+
 Measuring ways to spend fewer LLM tokens without losing the answer. Every claim here is
 pre-registered, run, and scored by frozen code, and the failures are kept.
 
